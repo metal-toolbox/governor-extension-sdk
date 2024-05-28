@@ -62,4 +62,6 @@ Temporary Items
 go.work
 go.work.sum
 
+bin
 tmp
+governor-extension-sdk
