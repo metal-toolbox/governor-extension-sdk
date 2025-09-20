@@ -5,7 +5,7 @@ go 1.22.2
 require (
 	github.com/gin-contrib/cors v1.7.2
 	github.com/gin-contrib/zap v1.1.3
-	github.com/gin-gonic/gin v1.10.0
+	github.com/gin-gonic/gin v1.11.0
 	github.com/metal-toolbox/governor-api v0.2.3
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/nats-io/nats.go v1.35.0
