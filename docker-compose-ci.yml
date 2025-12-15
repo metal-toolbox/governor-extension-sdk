@@ -1,6 +1,6 @@
 services:
   go:
-    image: golang:1.22
+    image: golang:1.25
     volumes:
       - type: bind
         source: ./
