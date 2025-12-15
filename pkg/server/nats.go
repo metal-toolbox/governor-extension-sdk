@@ -127,6 +127,7 @@ func (c *NATSClient) Subscribe(ctx context.Context, subject string) error {
 
 		event.Headers = msg.Header
 		msg.Subject = strings.TrimPrefix(msg.Subject, c.prefix+".")
+
 		c.messagesChan <- &EventMessage{msg.Subject, event}
 	}
 

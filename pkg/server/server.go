@@ -251,6 +251,7 @@ func (s *Server) Run(ctx context.Context) error {
 	}
 
 	go s.ListenEvents(ctx)
+
 	span.End()
 
 	// wait foir shutdown
