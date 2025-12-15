@@ -26,11 +26,11 @@ func NewValidator(opts ...Option) (v *Validator, err error) {
 
 	for _, opt := range opts {
 		if err = opt(v); err != nil {
-			return
+			return v, err
 		}
 	}
 
-	return
+	return v, err
 }
 
 // WithERD sets the ERD to validate.
@@ -49,7 +49,7 @@ func WithERDContent(content ERDContent) Option {
 			return fmt.Errorf("%w: %s", ErrERDValidationFailed, err.Error())
 		}
 
-		return
+		return err
 	}
 }
 
