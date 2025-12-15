@@ -52,11 +52,11 @@ func (s *Server) ListenEvents(ctx context.Context) {
 		case msg := <-s.eventClient.Messages():
 			s.logger.Info("received governor event")
 
-			go func(ctx context.Context) {
+			go func(ctx context.Context, msg *EventMessage) {
 				if err := s.eventRouter.Process(ctx, msg.Subject, msg.Event); err != nil {
 					s.logger.Error("error processing event", zap.Error(err))
 				}
-			}(ctx)
+			}(ctx, msg)
 
 		case <-ctx.Done():
 			s.logger.Info("context cancelled, shutting down")

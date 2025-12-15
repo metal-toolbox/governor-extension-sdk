@@ -13,9 +13,9 @@ import (
 type CorrelationIDProcessor struct {
 	logger *zap.Logger
 
-	// histcache is a local cache of update history, specifically records the
-	// correlation ID. this is to prevent the extension from reacting to its own
-	// updates
+	// histcache is a pluggable history cache (local or distributed) that records
+	// correlation IDs. This is used to prevent the extension from reacting to its own
+	// updates.
 	histcache historycache.HistoryCache
 	// skippableRoutes is a map of routes that can be skipped based on the
 	// correlation ID and skip strategy
@@ -94,13 +94,15 @@ func CorrelationIDProcessorWithSkipStrategyCustom(sr map[string]map[string]struc
 // correlation ID is found in the history cache. The skip strategy is applied
 // to determine if the event should be skipped.
 func (p *CorrelationIDProcessor) ShouldSkip(ctx context.Context, cid, action, subj string) (bool, error) {
-	exists, err := p.histcache.ExistsOrStore(ctx, cid)
-	if err != nil {
-		return false, err
-	}
+	if cid != "" {
+		exists, err := p.histcache.ExistsOrStore(ctx, cid)
+		if err != nil {
+			return false, err
+		}
 
-	if !exists {
-		return false, nil
+		if !exists {
+			return false, nil
+		}
 	}
 
 	if _, ok := p.skippableRoutes[action]; ok {
