@@ -34,6 +34,8 @@ const (
 	StatusDisabled Status = "DISABLED"
 	// StatusBootstrapping is the status when the server is bootstrapping
 	StatusBootstrapping Status = "BOOTSTRAPPING"
+	// DefaultMaxWorkers defines the default maximum number of workers for event processing
+	DefaultMaxWorkers = 10
 )
 
 // Server implements the HTTP Server
@@ -53,6 +55,7 @@ type Server struct {
 
 	eventRouter eventrouter.EventRouter
 	processors  []eventprocessor.EventProcessor
+	sam         chan struct{}
 }
 
 // Option is a function that configures a Server
@@ -73,6 +76,7 @@ func NewServer(
 		erdDir:      erdDir,
 
 		processors: []eventprocessor.EventProcessor{},
+		sam:        make(chan struct{}, DefaultMaxWorkers),
 	}
 
 	for _, opt := range opts {
@@ -99,6 +103,13 @@ func NewServer(
 func WithEventProcessor(p eventprocessor.EventProcessor) Option {
 	return func(s *Server) {
 		s.processors = append(s.processors, p)
+	}
+}
+
+// WithMaxWorkers sets the maximum number of workers for event processing
+func WithMaxWorkers(num int) Option {
+	return func(s *Server) {
+		s.sam = make(chan struct{}, num)
 	}
 }
 

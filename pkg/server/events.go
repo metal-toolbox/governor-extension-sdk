@@ -52,7 +52,11 @@ func (s *Server) ListenEvents(ctx context.Context) {
 		case msg := <-s.eventClient.Messages():
 			s.logger.Info("received governor event")
 
+			s.sam <- struct{}{}
+
 			go func(ctx context.Context, msg *EventMessage) {
+				defer func() { <-s.sam }()
+
 				if err := s.eventRouter.Process(ctx, msg.Subject, msg.Event); err != nil {
 					s.logger.Error("error processing event", zap.Error(err))
 				}

@@ -94,17 +94,18 @@ func CorrelationIDProcessorWithSkipStrategyCustom(sr map[string]map[string]struc
 // correlation ID is found in the history cache. The skip strategy is applied
 // to determine if the event should be skipped.
 func (p *CorrelationIDProcessor) ShouldSkip(ctx context.Context, cid, action, subj string) (bool, error) {
-	if cid != "" {
-		exists, err := p.histcache.ExistsOrStore(ctx, cid)
-		if err != nil {
-			return false, err
-		}
-
-		if !exists {
-			return false, nil
-		}
+	if cid == "" {
+		return false, nil
 	}
 
+	exists, err := p.histcache.ExistsOrStore(ctx, cid)
+	if err != nil {
+		return false, err
+	}
+
+	if !exists {
+		return false, nil
+	}
 	if _, ok := p.skippableRoutes[action]; ok {
 		if _, ok := p.skippableRoutes[action]["*"]; ok {
 			return true, nil
