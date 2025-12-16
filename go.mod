@@ -6,6 +6,7 @@ require (
 	github.com/gin-contrib/cors v1.7.6
 	github.com/gin-contrib/zap v1.1.6
 	github.com/gin-gonic/gin v1.11.0
+	github.com/hashicorp/golang-lru/v2 v2.0.7
 	github.com/metal-toolbox/governor-api v0.10.1
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/nats-io/nats.go v1.47.0

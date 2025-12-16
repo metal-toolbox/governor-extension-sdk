@@ -4,6 +4,7 @@ import (
 	"context"
 
 	govevents "github.com/metal-toolbox/governor-api/pkg/events/v1alpha1"
+	"github.com/metal-toolbox/governor-extension-sdk/pkg/eventrouter/historycache"
 	"github.com/nats-io/nats.go"
 	"go.uber.org/zap"
 )
@@ -12,11 +13,10 @@ import (
 type CorrelationIDProcessor struct {
 	logger *zap.Logger
 
-	// histcache is a local cache of update history, specifically records the
-	// correlation ID. this is to prevent the extension from reacting to its own
-	// updates
-	// TODO: make this a distributed cache
-	histcache map[string]struct{}
+	// histcache is a pluggable history cache (local or distributed) that records
+	// correlation IDs. This is used to prevent the extension from reacting to its own
+	// updates.
+	histcache historycache.HistoryCache
 	// skippableRoutes is a map of routes that can be skipped based on the
 	// correlation ID and skip strategy
 	skippableRoutes map[string]map[string]struct{}
@@ -29,7 +29,7 @@ type CorrelationIDProcessorOpt func(*CorrelationIDProcessor)
 func NewCorrelationIDProcessor(opts ...CorrelationIDProcessorOpt) *CorrelationIDProcessor {
 	p := &CorrelationIDProcessor{
 		logger:          zap.NewNop(),
-		histcache:       make(map[string]struct{}),
+		histcache:       historycache.NewLocalCache(),
 		skippableRoutes: make(map[string]map[string]struct{}),
 	}
 
@@ -41,6 +41,13 @@ func NewCorrelationIDProcessor(opts ...CorrelationIDProcessorOpt) *CorrelationID
 	}
 
 	return p
+}
+
+// CorrelationIDProcessorWithHistoryCache sets the history cache for CorrelationIDProcessor.
+func CorrelationIDProcessorWithHistoryCache(histcache historycache.HistoryCache) CorrelationIDProcessorOpt {
+	return func(p *CorrelationIDProcessor) {
+		p.histcache = histcache
+	}
 }
 
 // CorrelationIDProcessorWithLogger sets the logger for CorrelationIDProcessor.
@@ -86,27 +93,30 @@ func CorrelationIDProcessorWithSkipStrategyCustom(sr map[string]map[string]struc
 // A process is only skipped when the correlation ID is not empty and the
 // correlation ID is found in the history cache. The skip strategy is applied
 // to determine if the event should be skipped.
-func (p *CorrelationIDProcessor) ShouldSkip(cid, action, subj string) bool {
-	if _, ok := p.histcache[cid]; !ok {
-		return false
+func (p *CorrelationIDProcessor) ShouldSkip(ctx context.Context, cid, action, subj string) (bool, error) {
+	if cid == "" {
+		return false, nil
 	}
 
+	exists, err := p.histcache.ExistsOrStore(ctx, cid)
+	if err != nil {
+		return false, err
+	}
+
+	if !exists {
+		return false, nil
+	}
 	if _, ok := p.skippableRoutes[action]; ok {
 		if _, ok := p.skippableRoutes[action]["*"]; ok {
-			return true
+			return true, nil
 		}
 
 		if _, ok := p.skippableRoutes[action][subj]; ok {
-			return true
+			return true, nil
 		}
 	}
 
-	return false
-}
-
-// addToCache adds the correlation ID to the history cache.
-func (p *CorrelationIDProcessor) addToCache(cid string) {
-	p.histcache[cid] = struct{}{}
+	return false, nil
 }
 
 // MWInjectCorrelationID returns a middleware that injects the correlation ID into the context.
@@ -129,7 +139,12 @@ func (p *CorrelationIDProcessor) MWInjectCorrelationID(next Handler) Handler {
 
 		subj := GetSubjectFromContext(ctx)
 
-		if subj != "" && cid != "" && p.ShouldSkip(cid, event.Action, subj) {
+		skip, err := p.ShouldSkip(ctx, cid, event.Action, subj)
+		if err != nil {
+			return err
+		}
+
+		if subj != "" && cid != "" && skip {
 			p.logger.Info(
 				"skipping event",
 				zap.String("action", event.Action),
@@ -143,9 +158,7 @@ func (p *CorrelationIDProcessor) MWInjectCorrelationID(next Handler) Handler {
 		}
 
 		nextctx := govevents.InjectCorrelationID(ctx, cid)
-		err := next(nextctx, event)
-
-		p.addToCache(cid)
+		err = next(nextctx, event)
 
 		return err
 	}
