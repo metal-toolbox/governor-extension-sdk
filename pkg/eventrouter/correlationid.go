@@ -106,6 +106,7 @@ func (p *CorrelationIDProcessor) ShouldSkip(ctx context.Context, cid, action, su
 	if !exists {
 		return false, nil
 	}
+
 	if _, ok := p.skippableRoutes[action]; ok {
 		if _, ok := p.skippableRoutes[action]["*"]; ok {
 			return true, nil
