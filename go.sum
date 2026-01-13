@@ -209,6 +209,8 @@ github.com/metal-toolbox/auditevent v0.9.0 h1:LlXP38RsysaTdWTqBdreNcOmUXI/yDK0Ly
 github.com/metal-toolbox/auditevent v0.9.0/go.mod h1:2MYKYriPI4EheqlerPwHwx4V4AUaJjmxJg1bQsBwiIU=
 github.com/metal-toolbox/governor-api v0.10.1 h1:OAac6CiwZ3lSabfvfm1RM+TwYUlq0l2soUzUrS7ARnk=
 github.com/metal-toolbox/governor-api v0.10.1/go.mod h1:uHTzgtb3jaDPfukqNLzGyklKGJ80t54LgJXAgapIU84=
+github.com/metal-toolbox/governor-api v0.11.0 h1:Fwtp8CEgQjVVRRhg2+OnwYrV2+0D8xivDcDYnob2Uq8=
+github.com/metal-toolbox/governor-api v0.11.0/go.mod h1:ysWSe7HDO2BO1OaWUAAww1HGEBhiTJRfXm9txdzlxuI=
 github.com/mfridman/interpolate v0.0.2 h1:pnuTK7MQIxxFz1Gr+rjSIx9u7qVjf5VOoM/u6BbAxPY=
 github.com/mfridman/interpolate v0.0.2/go.mod h1:p+7uk6oE07mpE/Ik1b8EckO0O4ZXiGAfshKBWLUM9Xg=
 github.com/mitchellh/go-homedir v1.1.0 h1:lukF9ziXFxDFPkA1vsr5zpc1XuPDn/wFntq5mG+4E0Y=
