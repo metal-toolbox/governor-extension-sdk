@@ -19,3 +19,12 @@ jobs:
       - uses: metal-toolbox/ci-toolbox/actions/setup-go@init
       - name: tests
         run: make test
+
+  scan:
+    name: 🔍 scan
+    permissions:
+      contents: read
+      security-events: write
+    uses: metal-toolbox/ci-toolbox/.github/workflows/trivy.yaml@init
+    with:
+      scan-type: fs
