@@ -2,9 +2,6 @@ on:
   workflow_dispatch:
   push:
 
-env:
-  APP_NAME: governor-extension-sdk
-
 jobs:
   lint: 
     name: 📎 lint
