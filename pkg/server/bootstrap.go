@@ -16,17 +16,41 @@ import (
 
 // Bootstrap is a function that bootstraps the extension
 // it is called by the server after it has started
-//
-//  1. extension check if it is registered
-//  2. extension check if it is enabled
-//  3. compare local ERDs with ERDs from governor, only create new ERDs if
-//     they don't exist in governor. Since ERDs are immutable, the extension will
-//     not attempt to update the ERDs if it was changed by the developer.
 func (s *Server) Bootstrap(ctx context.Context) error {
 	s.status = StatusBootstrapping
 	s.logger.Info("bootstrapping extension")
 
 	ctx, span := s.tracer.Start(ctx, "boostrap")
+	defer span.End()
+
+	// only register ERDs if the extension is registered.
+	// this allows the extension server to be used for conventional governor
+	// addons where non-interactive extensions can be used to only process events
+	// without defining ERDs.
+	if s.extensionID != "" {
+		if err := s.registerERDs(ctx); err != nil {
+			span.RecordError(err)
+			span.SetStatus(codes.Error, err.Error())
+
+			return err
+		}
+	}
+
+	// register processors
+	for _, processor := range s.processors {
+		processor.Register(s.eventRouter, s.extension)
+	}
+
+	return nil
+}
+
+//  1. extension check if it is registered
+//  2. extension check if it is enabled
+//  3. compare local ERDs with ERDs from governor, only create new ERDs if
+//     they don't exist in governor. Since ERDs are immutable, the extension will
+//     not attempt to update the ERDs if it was changed by the developer.
+func (s *Server) registerERDs(ctx context.Context) error {
+	ctx, span := s.tracer.Start(ctx, "register-erds")
 	defer span.End()
 
 	ext, err := s.governorClient.Extension(ctx, s.extensionID, false)
@@ -101,11 +125,6 @@ func (s *Server) Bootstrap(ctx context.Context) error {
 	}
 
 	createERDSpan.End()
-
-	// register processors
-	for _, processor := range s.processors {
-		processor.Register(s.eventRouter, s.extension)
-	}
 
 	return nil
 }
