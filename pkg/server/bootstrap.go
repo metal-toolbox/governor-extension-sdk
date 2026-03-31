@@ -41,6 +41,7 @@ func (s *Server) Bootstrap(ctx context.Context) error {
 	if s.extension == nil {
 		s.extension = &v1alpha1.Extension{}
 	}
+
 	for _, processor := range s.processors {
 		processor.Register(s.eventRouter, s.extension)
 	}
