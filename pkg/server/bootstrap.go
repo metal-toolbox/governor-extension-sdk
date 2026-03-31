@@ -20,7 +20,7 @@ func (s *Server) Bootstrap(ctx context.Context) error {
 	s.status = StatusBootstrapping
 	s.logger.Info("bootstrapping extension")
 
-	ctx, span := s.tracer.Start(ctx, "boostrap")
+	ctx, span := s.tracer.Start(ctx, "bootstrap")
 	defer span.End()
 
 	// only register ERDs if the extension is registered.
@@ -37,6 +37,10 @@ func (s *Server) Bootstrap(ctx context.Context) error {
 	}
 
 	// register processors
+	// ensure we never pass a nil extension to processors to avoid nil dereferences
+	if s.extension == nil {
+		s.extension = &v1alpha1.Extension{}
+	}
 	for _, processor := range s.processors {
 		processor.Register(s.eventRouter, s.extension)
 	}
@@ -45,19 +49,12 @@ func (s *Server) Bootstrap(ctx context.Context) error {
 }
 
 //  1. extension check if it is registered
-//  2. extension check if it is enabled
-//  3. compare local ERDs with ERDs from governor, only create new ERDs if
+//  2. compare local ERDs with ERDs from governor, only create new ERDs if
 //     they don't exist in governor. Since ERDs are immutable, the extension will
-//     not attempt to update the ERDs if it was changed by the developer.
+//     not attempt to update the ERDs if they were changed by the developer.
 func (s *Server) registerERDs(ctx context.Context) error {
-	ctx, span := s.tracer.Start(ctx, "register-erds")
-	defer span.End()
-
 	ext, err := s.governorClient.Extension(ctx, s.extensionID, false)
 	if err != nil {
-		span.RecordError(err)
-		span.SetStatus(codes.Error, err.Error())
-
 		return err
 	}
 
