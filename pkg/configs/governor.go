@@ -22,7 +22,7 @@ type Governor struct {
 func MustGovernorFlags(v *viper.Viper, flags *pflag.FlagSet) {
 	flags.String("governor-url", "https://api.iam.equinixmetal.net", "url of the governor api")
 	viperBindFlag(v, "governor.url", flags.Lookup("governor-url"))
-	flags.String("governor-client-id", "gov-ldap-addon", "oauth client ID for client credentials flow")
+	flags.String("governor-client-id", "", "oauth client ID for client credentials flow")
 	viperBindFlag(v, "governor.client-id", flags.Lookup("governor-client-id"))
 	flags.String("governor-client-secret", "", "oauth client secret for client credentials flow")
 	viperBindFlag(v, "governor.client-secret", flags.Lookup("governor-client-secret"))
@@ -32,7 +32,7 @@ func MustGovernorFlags(v *viper.Viper, flags *pflag.FlagSet) {
 	viperBindFlag(v, "governor.audience", flags.Lookup("governor-audience"))
 	flags.StringSlice("governor-scopes", []string{"read:governor:groups", "read:governor:applications"}, "oauth scopes for the governor client credentials token")
 	viperBindFlag(v, "governor.scopes", flags.Lookup("governor-scopes"))
-	flags.String("governor-extension-id", "gov-ldap-addon", "extension ID for the governor extension")
+	flags.String("governor-extension-id", "", "extension ID for the governor extension")
 	viperBindFlag(v, "governor.extension-id", flags.Lookup("governor-extension-id"))
 	flags.String("governor-erds-path", "/app/erds", "path to the ERDs for the governor extension")
 	viperBindFlag(v, "governor.erds-path", flags.Lookup("governor-erds-path"))

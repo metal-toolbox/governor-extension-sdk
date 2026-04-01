@@ -17,7 +17,7 @@ type NATSConfig struct {
 // Panics on error
 func MustNATSFlags(v *viper.Viper, flags *pflag.FlagSet) {
 	govcfg.AddFlags(flags)
-	flags.String("nats-queue-group", "equinixmetal.governor.extensions.gov-ldap-addon", "queue group for load balancing messages across NATS consumers")
+	flags.String("nats-queue-group", "", "queue group for load balancing messages across NATS consumers")
 	viperBindFlag(v, "nats.queue-group", flags.Lookup("nats-queue-group"))
 	flags.Int("nats-queue-size", 3, "queue size for load balancing messages across NATS consumers") //nolint: mnd
 	viperBindFlag(v, "nats.queue-size", flags.Lookup("nats-queue-size"))
