@@ -54,7 +54,6 @@ func (lc Logging) Logger(appName string) *zap.Logger {
 	}
 
 	logger := l.With(zap.String("app", appName))
-	defer logger.Sync() //nolint:errcheck
 
 	return logger
 }
