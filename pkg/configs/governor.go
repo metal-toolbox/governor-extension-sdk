@@ -7,14 +7,15 @@ import (
 
 // Governor holds Governor API configuration
 type Governor struct {
-	URL          string   `mapstructure:"url"`
-	ClientID     string   `mapstructure:"client-id"`
-	ClientSecret string   `mapstructure:"client-secret"`
-	TokenURL     string   `mapstructure:"token-url"`
-	Audience     string   `mapstructure:"audience"`
-	Scopes       []string `mapstructure:"scopes"`
-	ExtensionID  string   `mapstructure:"extension-id"`
-	ERDsPath     string   `mapstructure:"erds-path"`
+	URL              string   `mapstructure:"url"`
+	ClientID         string   `mapstructure:"client-id"`
+	ClientSecret     string   `mapstructure:"client-secret"`
+	TokenURL         string   `mapstructure:"token-url"`
+	Audience         string   `mapstructure:"audience"`
+	Scopes           []string `mapstructure:"scopes"`
+	ExtensionID      string   `mapstructure:"extension-id"`
+	ERDsPath         string   `mapstructure:"erds-path"`
+	WorkloadIdentity bool     `mapstructure:"workload-identity"`
 }
 
 // MustGovernorFlags registers Governor related flags and binds them to viper
@@ -36,4 +37,6 @@ func MustGovernorFlags(v *viper.Viper, flags *pflag.FlagSet) {
 	viperBindFlag(v, "governor.extension-id", flags.Lookup("governor-extension-id"))
 	flags.String("governor-erds-path", "/app/erds", "path to the ERDs for the governor extension")
 	viperBindFlag(v, "governor.erds-path", flags.Lookup("governor-erds-path"))
+	flags.Bool("governor-workload-identity", false, "use workload identity federation instead of client credentials for governor auth")
+	viperBindFlag(v, "governor.workload-identity", flags.Lookup("governor-workload-identity"))
 }
