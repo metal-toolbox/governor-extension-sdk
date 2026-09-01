@@ -34,11 +34,15 @@ func MustTracingFlags(v *viper.Viper, flags *pflag.FlagSet) {
 	viperBindFlag(v, "tracing.enabled", flags.Lookup("tracing"))
 	flags.String("tracing-provider", "otlpgrpc", "tracing provider to use")
 	viperBindFlag(v, "tracing.provider", flags.Lookup("tracing-provider"))
-	flags.String("tracing-endpoint", "trace:4317", "endpoint where traces are sent")
+	flags.String("tracing-endpoint", "",
+		"endpoint where traces are sent; if unset, falls back to the standard OTEL_EXPORTER_OTLP_ENDPOINT / "+
+			"OTEL_EXPORTER_OTLP_TRACES_ENDPOINT env vars, then the OTel SDK default of localhost:4317")
 	viperBindFlag(v, "tracing.endpoint", flags.Lookup("tracing-endpoint"))
 	flags.String("tracing-environment", "production", "environment value in traces")
 	viperBindFlag(v, "tracing.environment", flags.Lookup("tracing-environment"))
-	flags.Bool("tracing-insecure", false, "use insecure connection for tracing endpoint")
+	flags.Bool("tracing-insecure", false,
+		"use insecure connection for tracing endpoint; if tracing-endpoint is also unset, security is instead "+
+			"derived from the OTEL_EXPORTER_OTLP_ENDPOINT scheme")
 	viperBindFlag(v, "tracing.insecure", flags.Lookup("tracing-insecure"))
 }
 
@@ -68,7 +72,16 @@ func (t Tracing) initTracer(_ context.Context, appName string) (*tracesdk.Tracer
 
 	switch t.Provider {
 	case "otlpgrpc":
-		clientOptions := []otlptracegrpc.Option{otlptracegrpc.WithEndpoint(t.Endpoint)}
+		var clientOptions []otlptracegrpc.Option
+
+		// Only override the endpoint/security when explicitly configured. Leaving them
+		// unset lets otlptracegrpc.NewClient fall back to the standard
+		// OTEL_EXPORTER_OTLP_ENDPOINT / OTEL_EXPORTER_OTLP_TRACES_ENDPOINT env vars (and
+		// the security implied by their scheme) instead of always pinning to our default.
+		if t.Endpoint != "" {
+			clientOptions = append(clientOptions, otlptracegrpc.WithEndpoint(t.Endpoint))
+		}
+
 		if t.Insecure {
 			clientOptions = append(clientOptions, otlptracegrpc.WithInsecure())
 		}
